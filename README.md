@@ -47,6 +47,34 @@ This feature can be run as follows:
 snakemake --profile profile all_timecourse
 ```
 
+### Running locally (without SLURM)
+NEURON does not need an HPC cluster. Every rule runs in the same container, so you can run the whole pipeline on a single Linux workstation or server with Snakemake and Apptainer/Singularity. You don't need the SLURM plugin or `profile/config.yaml`. Follow the Installation steps below (Snakemake, Apptainer, container build, models). Then run from the repository root:
+
+```bash
+snakemake --cores 8 --sdm apptainer --resources mem_mb=64000
+```
+
+- `--cores`: the number of CPU cores NEURON may use. Rules that ask for more threads in `config/samples.yaml` (e.g. Sturgeon: 10) are scaled down to this number.
+- `--sdm apptainer`: runs each rule inside the container set by `container:` in `config/samples.yaml` (same as `use-singularity: true` in the SLURM profile).
+- `--resources mem_mb=...`: the memory (MB) NEURON may use, so jobs that run at the same time don't exceed your machine's RAM. The Sturgeon step requests 32 GB for BAM files under 15 GB and more for larger ones (up to 128 GB), so we recommend at least 32 GB of RAM.
+
+The timecourse analysis runs the same way:
+
+```bash
+snakemake all_timecourse --cores 8 --sdm apptainer --resources mem_mb=64000
+```
+Put the target (`all_timecourse`) before `--resources`. Otherwise Snakemake reads it as another resource.
+
+Apptainer mounts your home directory, the current directory and `/tmp` into the container by default. If your BAM files or the repository are on another disk, mount that location as well, e.g.:
+
+```bash
+snakemake --cores 8 --sdm apptainer --resources mem_mb=64000 --apptainer-args "--bind /data:/data"
+```
+
+Check what will run first with a dry run by adding `-n`. To test the installation, use the test set in `input/test_data/` and set the sample paths in `config/samples.yaml` to that folder (see [Test the pipeline](#test-the-pipeline)).
+
+Apptainer only runs on Linux. On macOS or Windows, use a Linux virtual machine or WSL2.
+
 ### Final report
 Each sample gets `results/<sample>/final_report.pdf` with:
 - Key results: top Sturgeon v1 and v2 class, _MGMT_ promoter status and tumour cell fraction
@@ -63,6 +91,7 @@ The same version information is saved as `results/<sample>/software_versions.tsv
 conda install -c conda-forge -c bioconda snakemake=9.8.1
 ```
 ### As Helios uses SLURM as task manager, install the SLURM plugin
+This is only needed on a SLURM cluster, not for [running locally](#running-locally-without-slurm).
 ```bash
 pip install snakemake-executor-plugin-slurm
 ```
