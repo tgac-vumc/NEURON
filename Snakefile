@@ -108,7 +108,7 @@ rule sturgeon:
         CONTAINER
     shell:
         """
-        Rscript scripts/run_sturgeon.R {input.bam} {params.sample} {input.model}
+        Rscript scripts/run_sturgeon.R {input.bam} {params.sample} {input.model} {threads}
         """
 
 
@@ -436,7 +436,7 @@ rule subset_and_run_sturgeon_timecourse:
     shell:
         """
         mkdir -p results/{wildcards.sample}/{wildcards.sample}_{wildcards.timebin}min
-        bash scripts/subset_bam_and_run_sturgeon.sh \
+        THREADS={threads} bash scripts/subset_bam_and_run_sturgeon.sh \
             {input.bam} \
             {input.read_list} \
             {wildcards.sample} \
