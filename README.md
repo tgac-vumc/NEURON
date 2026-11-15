@@ -51,24 +51,29 @@ snakemake --profile profile all_timecourse
 NEURON does not need an HPC cluster. Every rule runs in the same container, so you can run the whole pipeline on a single Linux workstation or server with Snakemake and Apptainer/Singularity. You don't need the SLURM plugin or `profile/config.yaml`. Follow the Installation steps below (Snakemake, Apptainer, container build, models). Then run from the repository root:
 
 ```bash
-snakemake --cores 8 --sdm apptainer --resources mem_mb=64000
+snakemake --cores 8 --sdm apptainer --resources mem_mb=30000
 ```
 
 - `--cores`: the number of CPU cores NEURON may use. Rules that ask for more threads in `config/samples.yaml` (e.g. Sturgeon: 10) are scaled down to this number.
 - `--sdm apptainer`: runs each rule inside the container set by `container:` in `config/samples.yaml` (same as `use-singularity: true` in the SLURM profile).
-- `--resources mem_mb=...`: the memory (MB) NEURON may use, so jobs that run at the same time don't exceed your machine's RAM. The Sturgeon step requests 32 GB for BAM files under 15 GB and more for larger ones (up to 128 GB), so we recommend at least 32 GB of RAM.
+- `--resources mem_mb=...`: the memory (MB) NEURON may use in total. Set this a bit below your machine's RAM. Snakemake then only runs jobs side by side if they fit within this limit.
+
+#### Memory and disk use
+The memory requests in the Snakefile (32–128 GB for the Sturgeon step, depending on BAM size) are set generously so that jobs are not killed on the HPC. They are not a minimum. Locally, Snakemake lowers any request that is larger than `--resources mem_mb` to that limit and runs the job anyway.
+
+How much memory a run really needs depends on sequencing depth, not on the classifiers. Sturgeon v1 and v2 themselves are light. Most memory goes into the Sturgeon v1 preprocessing step (`sturgeon inputtobed`) and the _MGMT_ step. Both read the full output of `modkit extract`, which has one line per CpG call per read. A small run, such as an intraoperative sample, therefore needs much less memory than a deeply sequenced sample. The same file also takes up disk space in `results/<sample>/` during the run, so make sure there is enough free disk space. It is removed when the run finishes.
 
 The timecourse analysis runs the same way:
 
 ```bash
-snakemake all_timecourse --cores 8 --sdm apptainer --resources mem_mb=64000
+snakemake all_timecourse --cores 8 --sdm apptainer --resources mem_mb=30000
 ```
 Put the target (`all_timecourse`) before `--resources`. Otherwise Snakemake reads it as another resource.
 
 Apptainer mounts your home directory, the current directory and `/tmp` into the container by default. If your BAM files or the repository are on another disk, mount that location as well, e.g.:
 
 ```bash
-snakemake --cores 8 --sdm apptainer --resources mem_mb=64000 --apptainer-args "--bind /data:/data"
+snakemake --cores 8 --sdm apptainer --resources mem_mb=30000 --apptainer-args "--bind /data:/data"
 ```
 
 Check what will run first with a dry run by adding `-n`. To test the installation, use the test set in `input/test_data/` and set the sample paths in `config/samples.yaml` to that folder (see [Test the pipeline](#test-the-pipeline)).
