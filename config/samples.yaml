@@ -1,5 +1,8 @@
 container: "singularity/cns_AUMC_pipeline_v2.3.sif" # Specify container path relative to container
 
+# Logo in the top-right corner of the report. Replace with your own institute's logo (PNG), or "" for no logo
+report_logo: "scripts/logo_header.png"
+
 #Configure default resources
 threads:
   sturgeon: 10
@@ -15,8 +18,6 @@ references:
   cnv_gene_bed: "reference/genes/relevant_genes_with_chm13v2_500kb_bin_nrs_fusions_singlebin.bed"
   mgmt_model: "scripts/mgmt_137sites_mean_model.Rdata"
   mgmt_bed: "scripts/mgmt_promoter_coordinates_T2T.bed"
-  report_logo: "scripts/logo.png"
-  report_header: "scripts/logo.tex"
 
 timecourse:
   bins: [5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240, 360, 480, 720, 960, 1200, 

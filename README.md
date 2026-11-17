@@ -90,7 +90,11 @@ Each sample gets `results/<sample>/final_report.pdf` with:
 The same version information is saved as `results/<sample>/software_versions.tsv`.
 
 #### Report logo
-The report shows the Amsterdam UMC logo in the top-right corner. To use your own institute's logo, replace `scripts/logo_header.png` with your logo as a PNG file with the same name. A wide logo works best: the current one is 2216 × 403 pixels and is scaled to the width of the header. Keep a file with that name in place: the pipeline expects it.
+The report shows the Amsterdam UMC logo in the top-right corner. To use your own institute's logo, put it in the repository (as a PNG; a wide logo works best) and point `report_logo` in `config/samples.yaml` to it:
+```yaml
+report_logo: "scripts/my_institute_logo.png"
+```
+Set `report_logo: ""` for a report without a logo.
 
 ## ⬇️ Installation
 
