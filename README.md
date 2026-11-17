@@ -63,6 +63,10 @@ The memory requests in the Snakefile (32–128 GB for the Sturgeon step, dependi
 
 How much memory a run really needs depends on sequencing depth, not on the classifiers. Sturgeon v1 and v2 themselves are light. Most memory goes into the Sturgeon v1 preprocessing step (`sturgeon inputtobed`) and the _MGMT_ step. Both read the full output of `modkit extract`, which has one line per CpG call per read. A small run, such as an intraoperative sample, therefore needs much less memory than a deeply sequenced sample. The same file also takes up disk space in `results/<sample>/` during the run, so make sure there is enough free disk space. It is removed when the run finishes.
 
+Example: a 6 GB BAM file (about 1.3 million reads, 48 million CpG calls) ran in 9 minutes on a laptop (Intel Core i9-14900HX, 32 GB RAM, Ubuntu 22.04) with `--cores 4 --resources mem_mb=12000`. The largest step used at most 11.8 GB of memory, and the run temporarily wrote about 16 GB to disk. For samples of this size, use a machine with at least 16 GB of RAM; deeper samples need more.
+
+`--resources mem_mb` only decides which jobs Snakemake runs at the same time. It does not limit how much memory a job really uses, so a job that needs more than the machine has will still fail.
+
 The timecourse analysis runs the same way:
 
 ```bash
