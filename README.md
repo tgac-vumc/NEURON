@@ -29,8 +29,8 @@ First, we define our sample names. The pipeline will look in the input/ folder f
 ```bash
 samples:
   test_data:
-    bam: "NEURON/input/test_data/test_sample.bam"
-    sequencing_summary: "NEURON/input/test_data/sequencing_summary.txt"
+    bam: "input/test_data/test_sample.bam"
+    sequencing_summary: "input/test_data/sequencing_summary.txt"
     barcode_label: "test_data"
 ```
 
@@ -76,7 +76,7 @@ Apptainer mounts your home directory, the current directory and `/tmp` into the 
 snakemake --cores 8 --sdm apptainer --resources mem_mb=30000 --apptainer-args "--bind /data:/data"
 ```
 
-Check what will run first with a dry run by adding `-n`. To test the installation, use the test set in `input/test_data/` and set the sample paths in `config/samples.yaml` to that folder (see [Test the pipeline](#test-the-pipeline)).
+Check what will run first with a dry run by adding `-n`. `config/samples.yaml` points to the test set in `input/test_data/` by default, so you can test the installation straight away (see [Test the pipeline](#test-the-pipeline)).
 
 Apptainer only runs on Linux. On macOS or Windows, use a Linux virtual machine or WSL2.
 
@@ -88,6 +88,9 @@ Each sample gets `results/<sample>/final_report.pdf` with:
 - Software and reference data: versions of the pipeline (with git commit), container, classifiers, tools and R packages, and MD5 checksums of the model and reference files
 
 The same version information is saved as `results/<sample>/software_versions.tsv`.
+
+#### Report logo
+The report shows the Amsterdam UMC logo in the top-right corner. To use your own institute's logo, replace `scripts/logo_header.png` with your logo as a PNG file with the same name. A wide logo works best: the current one is 2216 × 403 pixels and is scaled to the width of the header. Keep a file with that name in place: the pipeline expects it.
 
 ## ⬇️ Installation
 
@@ -155,7 +158,7 @@ Sturgeon V2: https://github.com/deRidderLab/sturgeon-v2 (model file `cns-v2.5.zi
 Move the model zip files to NEURON/reference/models/ (expected names: `general.zip` for V1, `cns-v2.5.zip` for V2). The models are not part of the container; the pipeline reads them from this folder. To use a different location or file name, change `sturgeon_model` / `sturgeon_v2_model` under `references` in config/samples.yaml.
 
 ### Test the pipeline
-A small testset has been added to the input folder to test correct installation of the workflow. It does not yield biologically meaningful outcomes, but is only to be used to test the workflow.
+A small test set is included in `input/test_data/` to check that the workflow is installed correctly, and `config/samples.yaml` points to it by default. It does not give biologically meaningful results. To analyse your own samples, replace the `test_data` entry under `samples:` in `config/samples.yaml` with your own sample names and file paths.
 
 ## 💭 Feedback and Contributing
 

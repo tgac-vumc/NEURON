@@ -30,6 +30,6 @@ timecourse:
 ###########################################################
 samples:
   test_data:
-    bam: "/net/beegfs/groups/mpa-md/bstikker/NEURON/input/test_data/test_sample.bam"
-    sequencing_summary: "/net/beegfs/groups/mpa-md/bstikker/NEURON/input/test_data/sequencing_summary.txt"
+    bam: "input/test_data/test_sample.bam"
+    sequencing_summary: "input/test_data/sequencing_summary.txt"
     barcode_label: "test_data"
