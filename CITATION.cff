@@ -7,6 +7,7 @@ authors:
     given-names: Bernard
     orcid: "https://orcid.org/0000-0002-3040-4562"
     affiliation: "Department of Pathology, Amsterdam UMC"
+license: MIT
 repository-code: "https://github.com/tgac-vumc/NEURON"
 abstract: >-
   NEURON is a containerized Snakemake pipeline for the analysis of nanopore

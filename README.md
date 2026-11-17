@@ -172,6 +172,10 @@ A small test set is included in `input/test_data/` to check that the workflow is
 
 If you use NEURON, please cite it. Citation details are in [CITATION.cff](CITATION.cff); on GitHub, use **Cite this repository** in the sidebar.
 
+## ⚖️ License
+
+NEURON is released under the [MIT License](LICENSE). The _MGMT_ model (`scripts/mgmt_137sites_mean_model.Rdata`) comes from [Rapid-CNS2](https://github.com/areebapatel/Rapid-CNS2) (MIT License, © 2022 Areeba Patel). The Sturgeon classifiers, their models and the other tools in the container keep their own licenses.
+
 ## 💭 Feedback and Contributing
 
 Please report bugs, ask questions or suggest features by opening an issue: https://github.com/tgac-vumc/NEURON/issues
