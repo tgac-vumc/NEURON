@@ -20,6 +20,8 @@ MGMT_MODEL = REFERENCES.get("mgmt_model", "scripts/mgmt_137sites_mean_model.Rdat
 MGMT_BED = REFERENCES.get("mgmt_bed", "scripts/mgmt_promoter_coordinates_T2T.bed")
 STURGEON_PROBES = REFERENCES.get("sturgeon_probes", "reference/probes/probelocs_chm13.bed")
 CNV_GENE_BED = REFERENCES.get("cnv_gene_bed", "reference/genes/relevant_genes_with_chm13v2_500kb_bin_nrs_fusions_singlebin.bed")
+# Logo in the report header; set report_logo to "" in config/samples.yaml for a report without a logo
+REPORT_LOGO = config.get("report_logo", "scripts/logo_header.png") or ""
 
 
 def pipeline_git_commit():
@@ -108,7 +110,7 @@ rule sturgeon:
         CONTAINER
     shell:
         """
-        Rscript scripts/run_sturgeon.R {input.bam} {params.sample} {input.model}
+        Rscript scripts/run_sturgeon.R {input.bam} {params.sample} {input.model} {threads}
         """
 
 
@@ -224,7 +226,7 @@ rule report:
         sturgeon_v2_csv="results/{sample}/sturgeon_v2_outcome.csv",
         rmd="scripts/report.Rmd",
         style="scripts/report_style.tex",
-        logo="scripts/logo_header.png",
+        logo=[REPORT_LOGO] if REPORT_LOGO else [],
         versions_script="scripts/collect_software_versions.sh"
     output:
         pdf="results/{sample}/final_report.pdf",
@@ -236,6 +238,7 @@ rule report:
         snakemake_version=SNAKEMAKE_VERSION,
         v1_model=os.path.basename(STURGEON_MODEL),
         v2_model=os.path.basename(STURGEON_V2_MODEL),
+        logo=REPORT_LOGO,
         checksum_files=" ".join([STURGEON_MODEL, STURGEON_V2_MODEL, MGMT_MODEL, MGMT_BED,
                                  STURGEON_PROBES, QDNASEQ_BINS, CNV_GENE_BED]),
         rundate=lambda wc: datetime.today().strftime("%Y-%m-%d")
@@ -272,7 +275,8 @@ rule report:
                 version = '{params.version}',
                 rundate = '{params.rundate}',
                 v1_model = '{params.v1_model}',
-                v2_model = '{params.v2_model}'
+                v2_model = '{params.v2_model}',
+                logo = '{params.logo}'
             ),
             output_dir = normalizePath('$TMP_RENDER_DIR', mustWork = TRUE),
             intermediates_dir = normalizePath('$TMP_RENDER_DIR', mustWork = TRUE),
@@ -436,7 +440,7 @@ rule subset_and_run_sturgeon_timecourse:
     shell:
         """
         mkdir -p results/{wildcards.sample}/{wildcards.sample}_{wildcards.timebin}min
-        bash scripts/subset_bam_and_run_sturgeon.sh \
+        THREADS={threads} bash scripts/subset_bam_and_run_sturgeon.sh \
             {input.bam} \
             {input.read_list} \
             {wildcards.sample} \

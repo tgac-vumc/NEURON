@@ -13,6 +13,7 @@ params:
   rundate: "RUN_DATE_PLACEHOLDER"
   v1_model: ""
   v2_model: ""
+  logo: "scripts/logo_header.png"
   top_n: 5
 ---
 
@@ -29,7 +30,7 @@ sample   <- params$sample
 top_n    <- as.integer(params$top_n)
 res_dir  <- file.path("results", sample)
 ace_dir  <- file.path(res_dir, "QDNAseq_ACE")
-logo     <- normalizePath(file.path("scripts", "logo_header.png"), mustWork = FALSE)
+logo     <- if (nzchar(params$logo)) normalizePath(params$logo, mustWork = FALSE) else ""
 
 # Escape text for LaTeX
 tex <- function(x) {
@@ -117,7 +118,7 @@ out("\\noindent\\begin{minipage}[b]{0.6\\textwidth}\n",
     "{\\fontsize{22}{26}\\selectfont\\bfseries\\color{brand}Molecular tumour report}\\\\[3pt]\n",
     "{\\small\\raggedright\\color{muted}Methylation-based classification, \\textit{MGMT} promoter status and copy-number profile\\par}\n",
     "\\end{minipage}\\hfill\n")
-if (file.exists(logo)) {
+if (nzchar(logo) && file.exists(logo)) {
   out("\\begin{minipage}[b]{0.3\\textwidth}\\raggedleft\\includegraphics[width=\\linewidth]{", logo, "}\\end{minipage}\n")
 }
 out("\\par\\vspace{10pt}\n")

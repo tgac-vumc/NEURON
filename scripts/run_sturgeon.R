@@ -1,5 +1,5 @@
 # run_sturgeon.R (enhanced)
-# Usage: Rscript run_sturgeon.R <bam_path> <sample_id> [model_zip]
+# Usage: Rscript run_sturgeon.R <bam_path> <sample_id> [model_zip] [threads]
 
 args <- commandArgs(trailingOnly = TRUE)
 script_arg <- grep("^--file=", commandArgs(), value = TRUE)
@@ -7,7 +7,7 @@ script_path <- normalizePath(sub("^--file=", "", script_arg[1]), mustWork = TRUE
 repo_root <- normalizePath(file.path(dirname(script_path), ".."), mustWork = TRUE)
 
 if (length(args) < 2) {
-  stop("Usage: Rscript run_sturgeon.R <bam_path> <sample_id> [model_zip]")
+  stop("Usage: Rscript run_sturgeon.R <bam_path> <sample_id> [model_zip] [threads]")
 }
 
 bam_file <- normalizePath(args[1], mustWork = TRUE)
@@ -54,7 +54,9 @@ if (!file.exists(index_file)) {
 # ---------------------------
 # Step 2: Extract modkit data
 # ---------------------------
-threads <- as.integer(Sys.getenv("SLURM_CPUS_PER_TASK", unset="4"))
+# Threads: 4th argument (Snakemake {threads}), else SLURM_CPUS_PER_TASK, else 4
+threads <- if (length(args) >= 4) as.integer(args[4]) else as.integer(Sys.getenv("SLURM_CPUS_PER_TASK", unset = "4"))
+if (is.na(threads) || threads < 1) threads <- 4L
 cat(sprintf("Using %d threads for extraction\n", threads))
 
 cmd_extract <- sprintf("modkit extract full -t %d %s %s", threads, shQuote(adjusted_bam), shQuote(modkit_out))
