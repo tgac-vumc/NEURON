@@ -169,5 +169,14 @@ Move the model zip files to NEURON/reference/models/ (expected names: `general.z
 ### Test the pipeline
 A small test set is included in `input/test_data/` to check that the workflow is installed correctly, and `config/samples.yaml` points to it by default. It does not give biologically meaningful results. To analyse your own samples, replace the `test_data` entry under `samples:` in `config/samples.yaml` with your own sample names and file paths.
 
+## 📖 Citation
+
+If you use NEURON, please cite it. Citation details are in [CITATION.cff](CITATION.cff); on GitHub, use **Cite this repository** in the sidebar.
+
+## ⚖️ License
+
+NEURON is released under the [MIT License](LICENSE). The _MGMT_ model (`scripts/mgmt_137sites_mean_model.Rdata`) comes from [Rapid-CNS2](https://github.com/areebapatel/Rapid-CNS2) (MIT License, © 2022 Areeba Patel). The Sturgeon classifiers, their models and the other tools in the container keep their own licenses.
+
 ## 💭 Feedback and Contributing
+
 Please do not hesitate to report bugs or to discuss issues!: https://github.com/tgac-vumc/NEURON/issues

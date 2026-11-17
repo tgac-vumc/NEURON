@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use NEURON, please cite it using the metadata below."
+title: "NEURON: NEURo-Oncology Nanopore pipeline"
+type: software
+authors:
+  - family-names: Stikker
+    given-names: Bernard
+    orcid: "https://orcid.org/0000-0002-3040-4562"
+    affiliation: "Department of Pathology, Amsterdam UMC"
+license: MIT
+repository-code: "https://github.com/tgac-vumc/NEURON"
+abstract: >-
+  NEURON is a containerized Snakemake pipeline for the analysis of nanopore
+  sequencing data of brain tumors. Starting from aligned BAM files, it runs the
+  Sturgeon v1 and Sturgeon v2 methylation-based CNS tumor classifiers, MGMT
+  promoter methylation analysis, copy-number profiling with QDNAseq and tumor
+  cell fraction estimation with ACE, and compiles the results into one PDF
+  report. An optional timecourse analysis reconstructs these results over the
+  sequencing run.
+keywords:
+  - nanopore sequencing
+  - DNA methylation
+  - brain tumor classification
+  - neuro-oncology
+  - Snakemake
+  - Apptainer
