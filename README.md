@@ -100,8 +100,38 @@ This is only needed on a SLURM cluster, not for [running locally](#running-local
 ```bash
 pip install snakemake-executor-plugin-slurm
 ```
-### Install singularity
-Helios has singularity installed as module (1.4.1-1.el9)
+### Install Apptainer (Singularity)
+NEURON runs every step in an Apptainer container, so Apptainer must be installed. Apptainer is the open-source successor of Singularity; either works. On Helios it is available as a module (`singularity` 1.4.1-1.el9). On an HPC cluster, check whether it is available as a module before installing it yourself (e.g. `module avail apptainer`). Check an existing install with:
+```bash
+apptainer --version
+```
+
+On your own Linux machine, install it with the package manager (needs sudo). See the [Apptainer installation guide](https://apptainer.org/docs/admin/main/installation.html) for other systems.
+
+Ubuntu:
+```bash
+sudo apt update && sudo apt install -y software-properties-common
+sudo add-apt-repository -y ppa:apptainer/ppa
+sudo apt update && sudo apt install -y apptainer
+```
+
+Debian: download the `.deb` package of the [latest release](https://github.com/apptainer/apptainer/releases) and install it:
+```bash
+sudo apt install -y ./apptainer_<version>_amd64.deb
+```
+
+RHEL, Rocky, AlmaLinux (via EPEL) and Fedora:
+```bash
+sudo dnf install -y epel-release   # not needed on Fedora
+sudo dnf install -y apptainer
+```
+
+Without sudo, you can install it in a folder of your choice (needs `curl`, `rpm2cpio` and `cpio`), then add `<folder>/bin` to your `PATH`:
+```bash
+curl -s https://raw.githubusercontent.com/apptainer/apptainer/main/tools/install-unprivileged.sh | bash -s - <folder>
+```
+
+Apptainer only runs on Linux. On macOS or Windows, use a Linux virtual machine or WSL2.
 
 ### Install container from .def file
 Run the build from the repository root (the NEURON/ folder), not from inside singularity/: the definition file copies `singularity/sturgeon.yml` using a path relative to the folder you build from.
