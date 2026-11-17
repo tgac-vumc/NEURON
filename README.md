@@ -1,5 +1,8 @@
 <h1 align="center">
-  <img src="docs/images/NEURON-logo.png" alt="NEURON" width="480">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/NEURON-logo-dark.png">
+    <img src="docs/images/NEURON-logo.png" alt="NEURON" width="480">
+  </picture>
 </h1>
 
 ## 🌟 Highlights
