@@ -1,4 +1,9 @@
-# 🧠 NEURON
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/NEURON-logo-dark.png">
+    <img src="docs/images/NEURON-logo.png" alt="NEURON" width="480">
+  </picture>
+</h1>
 
 ## 🌟 Highlights
 
@@ -15,7 +20,7 @@ The pipeline can be run both in an SLURM-controlled HPC environment, and locally
 
 In addition, this pipeline also offers a reconstructed timeline analysis based on the Oxford Nanopore Technologies' sequencing summary file. You can predefine the time bins. Each bin gives you Sturgeon V1 and V2 outcomes as well as a bin-corresponding CNV profile. Classifier outcomes are visualized in line graphs over time, and again compiled into 1 PDF report.
 
-<img width="3553" height="2100" alt="NeuroTide pipeline (1)" src="https://github.com/user-attachments/assets/66854d8d-ab2e-45da-9494-e745c77bce23" />
+<img src="docs/images/NEURON-workflow.svg" alt="NEURON workflow: full-sample analysis and optional retrospective time course" width="100%" />
 
 
 ### ✍️ Authors
