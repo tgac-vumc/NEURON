@@ -175,7 +175,7 @@ If you use NEURON, please cite it. Citation details are in [CITATION.cff](CITATI
 
 ## ⚖️ License
 
-NEURON is released under the [MIT License](LICENSE). The _MGMT_ model (`scripts/mgmt_137sites_mean_model.Rdata`) comes from [Rapid-CNS2](https://github.com/areebapatel/Rapid-CNS2) (MIT License, © 2022 Areeba Patel). The Sturgeon classifiers, their models and the other tools in the container keep their own licenses.
+NEURON is released under the [MIT License](LICENSE). The _MGMT_ model (`scripts/mgmt_137sites_mean_model.Rdata`) comes from [Rapid-CNS2](https://github.com/areebapatel/Rapid-CNS2) (MIT License, © 2022 Areeba Patel; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)). The Sturgeon classifiers, their models and the other tools in the container keep their own licenses.
 
 ## 💭 Feedback and Contributing
 
