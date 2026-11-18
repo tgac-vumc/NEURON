@@ -5,123 +5,64 @@
   </picture>
 </h1>
 
+NEURON (NEURo-Oncology Nanopore) was developed for the molecular diagnostics department of Amsterdam UMC and can be used for automated analysis of nanopore-sequencing data, used for diagnostics of brain tumors. Starting from basecalled and aligned nanopore BAM files, it produces one PDF report per sample.
+
 ## 🌟 Highlights
 
 - Nanopore methylation-based brain tumor diagnosis (Sturgeon v1 and v2)
 - Copy Number Profiles (QDNAseq)
 - Estimated tumor purity (ACE)
 - _MGMT_ promoter methylation status (Rapid-CNS2)
+- Optional retrospective time course of the classifier results during the sequencing run
+- Runs in an Apptainer/Singularity container, on a SLURM cluster or locally on a Linux machine
 
+## Contents
+
+- [Overview](#ℹ️-overview)
+- [Installation](#️-installation)
+- [Usage](#-usage)
+- [Output](#-output)
+- [Memory and disk use](#-memory-and-disk-use)
+- [Citation](#-citation), [License](#️-license), [Authors](#️-authors), [Feedback](#-feedback-and-contributing)
 
 ## ℹ️ Overview
 
-NEURON (NEURo-Oncology Nanopore) was developed for the molecular diagnostics department of Amsterdam UMC and can be used for automated analysis of nanopore-sequencing data, used for diagnostics of brain tumors.
-The pipeline can be run both in an SLURM-controlled HPC environment, and locally without SLURM. It's containerized as an Apptainer/Singularity image, built from the definition files in singularity/ (on top of the `rocker/r-ver` base image from Docker Hub). Starting from basecalled and aligned nanopore bam files, the pipeline includes the Sturgeon v1 and Sturgeon v2 CNS tumor classifiers (Vermeulen et al. 2023 and Vermeulen et al. 2026), _MGMT_ promoter methylation status (Patel et al. 2022), CNV profiling using QDNAseq (Scheinin, 2014), and tumor cell fraction estimation inferred from the copy number data using ACE (Poell et al. 2019), and compiles it into 1 PDF report.
+NEURON is a Snakemake workflow that offers two analyses:
 
-In addition, this pipeline also offers a reconstructed timeline analysis based on the Oxford Nanopore Technologies' sequencing summary file. You can predefine the time bins. Each bin gives you Sturgeon V1 and V2 outcomes as well as a bin-corresponding CNV profile. Classifier outcomes are visualized in line graphs over time, and again compiled into 1 PDF report.
+1. **Full-sample analysis** (default target `all`). The pipeline includes the Sturgeon v1 and Sturgeon v2 CNS tumor classifiers (Vermeulen et al. 2023 and Vermeulen et al. 2026), _MGMT_ promoter methylation status (Patel et al. 2022), CNV profiling using QDNAseq (Scheinin et al. 2014), and tumor cell fraction estimation inferred from the copy number data using ACE (Poell et al. 2019), and compiles it into one PDF report.
+2. **Retrospective time course** (optional target `all_timecourse`). Based on the Oxford Nanopore Technologies sequencing summary file, the reads of a sample are split into predefined cumulative time bins. Each bin gives you Sturgeon v1 and v2 outcomes as well as a bin-corresponding CNV profile. Classifier outcomes are visualized in line graphs over time, and again compiled into one PDF report.
+
+Every step runs in the same Apptainer/Singularity container, built from the definition files in `singularity/` (on top of the `rocker/r-ver` base image from Docker Hub). The pipeline was developed for the SLURM-controlled HPC environment 'Helios' of Amsterdam UMC, but can also run locally on a single Linux workstation or server, without SLURM.
 
 <img src="docs/images/NEURON-workflow.svg" alt="NEURON workflow: full-sample analysis and optional retrospective time course" width="100%" />
 
-
-### ✍️ Authors
-
-Bernard Stikker, PhD - Department of Pathology - Amsterdam UMC
-
-
-## 🚀 Usage
-
-First, we define our sample names. The pipeline will look in the input/ folder for bam files and it's relative location should be defined in the config/samples.yaml file. Input bam files should be merged per sample and aligned to the T2T-CHM13v2.0 reference genome. For example:
-
-```bash
-samples:
-  test_data:
-    bam: "input/test_data/test_sample.bam"
-    sequencing_summary: "input/test_data/sequencing_summary.txt"
-    barcode_label: "test_data"
-```
-
-You can configure your SLURM settings in the profile/config.yaml file. In this way, you can run the pipeline as follows:
-
-```bash
-snakemake --profile profile 
-```
-In addition, the pipeline also offers an (optional) timecourse analysis next to the regular pipeline. In your config/samples.yaml, add the location of ONT's sequencing summary file as well as the name you gave your samples prior to the sequencing run (barcode_label). This label should match exactly to the 'alias' column in the sequencing summary. Rename the sequencing summary file exactly to 'sequencing summary.txt'. Automated detection is in development.
-
-This feature can be run as follows:
-
-```bash
-snakemake --profile profile all_timecourse
-```
-
-### Running locally (without SLURM)
-NEURON does not need an HPC cluster. Every rule runs in the same container, so you can run the whole pipeline on a single Linux workstation or server with Snakemake and Apptainer/Singularity. You don't need the SLURM plugin or `profile/config.yaml`. Follow the Installation steps below (Snakemake, Apptainer, container build, models). Then run from the repository root:
-
-```bash
-snakemake --cores 8 --sdm apptainer --resources mem_mb=30000
-```
-
-- `--cores`: the number of CPU cores NEURON may use. Rules that ask for more threads in `config/samples.yaml` (e.g. Sturgeon: 10) are scaled down to this number.
-- `--sdm apptainer`: runs each rule inside the container set by `container:` in `config/samples.yaml` (same as `use-singularity: true` in the SLURM profile).
-- `--resources mem_mb=...`: the memory (MB) NEURON may use in total. Set this a bit below your machine's RAM. Snakemake then only runs jobs side by side if they fit within this limit.
-
-#### Memory and disk use
-The memory requests in the Snakefile (32–128 GB for the Sturgeon step, depending on BAM size) are set generously so that jobs are not killed on the HPC. They are not a minimum. Locally, Snakemake lowers any request that is larger than `--resources mem_mb` to that limit and runs the job anyway.
-
-How much memory a run really needs depends on sequencing depth, not on the classifiers. Sturgeon v1 and v2 themselves are light. Most memory goes into the Sturgeon v1 preprocessing step (`sturgeon inputtobed`) and the _MGMT_ step. Both read the full output of `modkit extract`, which has one line per CpG call per read. A small run, such as an intraoperative sample, therefore needs much less memory than a deeply sequenced sample. The same file also takes up disk space in `results/<sample>/` during the run, so make sure there is enough free disk space. It is removed when the run finishes.
-
-Example: a 6 GB BAM file (about 1.3 million reads, 48 million CpG calls) ran in 9 minutes on a laptop (Intel Core i9-14900HX, 32 GB RAM, Ubuntu 22.04) with `--cores 4 --resources mem_mb=12000`. The largest step used at most 11.8 GB of memory, and the run temporarily wrote about 16 GB to disk. For samples of this size, use a machine with at least 16 GB of RAM; deeper samples need more.
-
-`--resources mem_mb` only decides which jobs Snakemake runs at the same time. It does not limit how much memory a job really uses, so a job that needs more than the machine has will still fail.
-
-The timecourse analysis runs the same way:
-
-```bash
-snakemake all_timecourse --cores 8 --sdm apptainer --resources mem_mb=30000
-```
-Put the target (`all_timecourse`) before `--resources`. Otherwise Snakemake reads it as another resource.
-
-Apptainer mounts your home directory, the current directory and `/tmp` into the container by default. If your BAM files or the repository are on another disk, mount that location as well, e.g.:
-
-```bash
-snakemake --cores 8 --sdm apptainer --resources mem_mb=30000 --apptainer-args "--bind /data:/data"
-```
-
-Check what will run first with a dry run by adding `-n`. `config/samples.yaml` points to the test set in `input/test_data/` by default, so you can test the installation straight away (see [Test the pipeline](#test-the-pipeline)).
-
-Apptainer only runs on Linux. On macOS or Windows, use a Linux virtual machine or WSL2.
-
-### Final report
-Each sample gets `results/<sample>/final_report.pdf` with:
-- Key results: top Sturgeon v1 and v2 class, _MGMT_ promoter status and tumour cell fraction
-- Classifier scores: the top 5 classes of Sturgeon v1 and v2 with their raw scores and the number of probes/CpG sites used
-- Classifier plots, copy-number profile with ACE and QDNAseq QC, and _MGMT_ details
-- Software and reference data: versions of the pipeline (with git commit), container, classifiers, tools and R packages, and MD5 checksums of the model and reference files
-
-The same version information is saved as `results/<sample>/software_versions.tsv`.
-
-#### Report logo
-The report shows the Amsterdam UMC logo in the top-right corner. To use your own institute's logo, put it in the repository (as a PNG; a wide logo works best) and point `report_logo` in `config/samples.yaml` to it:
-```yaml
-report_logo: "scripts/my_institute_logo.png"
-```
-Set `report_logo: ""` for a report without a logo.
-
 ## ⬇️ Installation
 
-### If you haven't installed snakemake yet, this pipeline has been validated using version 9.8.1.
+Apptainer only runs on Linux. On macOS or Windows, use a Linux virtual machine or WSL2. Run all commands from the repository root (the `NEURON/` folder).
+
+### 1. Snakemake
+
+The pipeline has been validated using Snakemake 9.8.1:
+
 ```bash
 conda install -c conda-forge -c bioconda snakemake=9.8.1
 ```
-### As Helios uses SLURM as task manager, install the SLURM plugin
-This is only needed on a SLURM cluster, not for [running locally](#running-locally-without-slurm).
+
+On a SLURM cluster, also install the SLURM plugin. This is not needed to [run locally](#running-locally-without-slurm).
+
 ```bash
 pip install snakemake-executor-plugin-slurm
 ```
-### Install Apptainer (Singularity)
-NEURON runs every step in an Apptainer container, so Apptainer must be installed. Apptainer is the open-source successor of Singularity; either works. On Helios it is available as a module (`singularity` 1.4.1-1.el9). On an HPC cluster, check whether it is available as a module before installing it yourself (e.g. `module avail apptainer`). Check an existing install with:
+
+### 2. Apptainer (Singularity)
+
+Apptainer is the open-source successor of Singularity; either works. Check whether it is already installed:
+
 ```bash
 apptainer --version
 ```
+
+On an HPC cluster, check whether it is available as a module before installing it yourself (e.g. `module avail apptainer`). On Helios it is available as a module (`singularity` 1.4.1-1.el9).
 
 On your own Linux machine, install it with the package manager (needs sudo). See the [Apptainer installation guide](https://apptainer.org/docs/admin/main/installation.html) for other systems.
 
@@ -143,36 +84,131 @@ sudo dnf install -y epel-release   # not needed on Fedora
 sudo dnf install -y apptainer
 ```
 
-Without sudo, you can install it in a folder of your choice (needs `curl`, `rpm2cpio` and `cpio`), then add `<folder>/bin` to your `PATH`:
+Without sudo, install it in a folder of your choice (needs `curl`, `rpm2cpio` and `cpio`), then add `<folder>/bin` to your `PATH`:
 ```bash
 curl -s https://raw.githubusercontent.com/apptainer/apptainer/main/tools/install-unprivileged.sh | bash -s - <folder>
 ```
 
-Apptainer only runs on Linux. On macOS or Windows, use a Linux virtual machine or WSL2.
+### 3. Build the container
 
-### Install container from .def file
-Run the build from the repository root (the NEURON/ folder), not from inside singularity/: the definition file copies `singularity/sturgeon.yml` using a path relative to the folder you build from.
+Build from the repository root, not from inside `singularity/`: the definition file copies `singularity/sturgeon.yml` using a path relative to the folder you build from.
+
 ```bash
-cd NEURON
 apptainer build --fakeroot singularity/cns_AUMC_pipeline_v2.3.sif singularity/cns_AUMC_pipeline_v2.3.def
 ```
-This writes the container to `singularity/cns_AUMC_pipeline_v2.3.sif`, where config/samples.yaml expects it.
 
-The container installs Sturgeon V2 from https://github.com/deRidderLab/sturgeon-v2, pinned to a fixed commit, so the build needs internet access to GitHub. The previous definition (v2.2, with a local copy of Sturgeon V2) is kept in singularity/ for reference.
-### Reference genome
-The pipeline does not need a reference FASTA, but input BAM files must be aligned to T2T-CHM13v2.0 (https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/analysis_set/chm13v2.0.fa.gz), because the probe locations, QDNAseq bins and gene annotations are all in T2T-CHM13v2.0 coordinates.
+This writes the container to `singularity/cns_AUMC_pipeline_v2.3.sif`, where `config/samples.yaml` expects it. The container installs Sturgeon v2 from https://github.com/deRidderLab/sturgeon-v2, pinned to a fixed commit, so the build needs internet access to GitHub. The previous definition (v2.2, with a local copy of Sturgeon v2) is kept in `singularity/` for reference.
 
-### QDNAseq bins
-The CNV analysis uses `reference/bins/T2T.500kbp.SR50.rda` (set by `qdnaseq_bins` in config/samples.yaml). The other bin sizes in that folder are kept for future development and are not used by the pipeline. See reference/bins/README.md before switching bin size.
+### 4. Download the classifier models
 
-### Downloading the classifiers (software is installed through the .def file, but models need to be downloaded manually)
-Sturgeon V1: https://github.com/UMCUGenetics/sturgeon
-Sturgeon V2: https://github.com/deRidderLab/sturgeon-v2 (model file `cns-v2.5.zip`: https://zenodo.org/records/22899108)
+The classifier software is installed in the container, but the models need to be downloaded manually:
 
-Move the model zip files to NEURON/reference/models/ (expected names: `general.zip` for V1, `cns-v2.5.zip` for V2). The models are not part of the container; the pipeline reads them from this folder. To use a different location or file name, change `sturgeon_model` / `sturgeon_v2_model` under `references` in config/samples.yaml.
+- Sturgeon v1: https://github.com/UMCUGenetics/sturgeon (model `general.zip`)
+- Sturgeon v2: https://github.com/deRidderLab/sturgeon-v2 (model `cns-v2.5.zip`: https://zenodo.org/records/22899108)
+
+Move both zip files to `reference/models/`. The models are not part of the container; the pipeline reads them from this folder. To use a different location or file name, change `sturgeon_model` / `sturgeon_v2_model` under `references` in `config/samples.yaml`.
+
+### 5. Reference data
+
+- **Reference genome.** The pipeline does not need a reference FASTA, but input BAM files must be aligned to [T2T-CHM13v2.0](https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/analysis_set/chm13v2.0.fa.gz), because the probe locations, QDNAseq bins and gene annotations are all in T2T-CHM13v2.0 coordinates.
+- **QDNAseq bins.** The CNV analysis uses `reference/bins/T2T.500kbp.SR50.rda` (set by `qdnaseq_bins` in `config/samples.yaml`). The other bin sizes in that folder are kept for future development and are not used by the pipeline. See `reference/bins/README.md` before switching bin size.
+
+## 🚀 Usage
+
+### Configure your samples
+
+Samples are defined in `config/samples.yaml`. Input BAM files should be merged per sample and aligned to the T2T-CHM13v2.0 reference genome. Paths are relative to the repository root. For example:
+
+```yaml
+samples:
+  test_data:
+    bam: "input/test_data/test_sample.bam"
+    sequencing_summary: "input/test_data/sequencing_summary.txt"   # only for the time course
+    barcode_label: "test_data"                                      # only for the time course
+```
 
 ### Test the pipeline
-A small test set is included in `input/test_data/` to check that the workflow is installed correctly, and `config/samples.yaml` points to it by default. It does not give biologically meaningful results. To analyse your own samples, replace the `test_data` entry under `samples:` in `config/samples.yaml` with your own sample names and file paths.
+
+A small test set is included in `input/test_data/`, and `config/samples.yaml` points to it by default, so you can check the installation straight away. It does not give biologically meaningful results. Start with a dry run (`-n`) to see what will run, then run the pipeline as described below. To analyse your own samples, replace the `test_data` entry under `samples:` with your own sample names and file paths.
+
+### Running on a SLURM cluster
+
+Configure your SLURM settings (partition, account, default resources, bind paths) in `profile/config.yaml`. Then run:
+
+```bash
+snakemake --profile profile
+```
+
+### Running locally (without SLURM)
+
+NEURON does not need an HPC cluster. Every rule runs in the same container, so you can run the whole pipeline on a single Linux workstation or server with Snakemake and Apptainer. You don't need the SLURM plugin or `profile/config.yaml`.
+
+```bash
+snakemake --cores 8 --sdm apptainer --resources mem_mb=30000
+```
+
+- `--cores`: the number of CPU cores NEURON may use. Rules that ask for more threads in `config/samples.yaml` (e.g. Sturgeon: 10) are scaled down to this number.
+- `--sdm apptainer`: runs each rule inside the container set by `container:` in `config/samples.yaml` (same as `use-singularity: true` in the SLURM profile).
+- `--resources mem_mb=...`: the memory (MB) NEURON may use in total. Set this a bit below your machine's RAM; see [Memory and disk use](#-memory-and-disk-use).
+
+Apptainer mounts your home directory, the current directory and `/tmp` into the container by default. If your BAM files or the repository are on another disk, mount that location as well, e.g.:
+
+```bash
+snakemake --cores 8 --sdm apptainer --resources mem_mb=30000 --apptainer-args "--bind /data:/data"
+```
+
+### Time course analysis
+
+The time course is optional and runs next to the full-sample analysis. For each sample, add to `config/samples.yaml`:
+
+- `sequencing_summary`: the path to the sequencing summary file of the run (any file name).
+- `barcode_label`: the value in the `barcode` column of the sequencing summary that belongs to this sample. It must match exactly. Automated detection is in development.
+
+The time bins (in minutes) are set under `timecourse` in `config/samples.yaml`. Samples without `sequencing_summary` and `barcode_label` are skipped. Run it with the target `all_timecourse`:
+
+```bash
+snakemake --profile profile all_timecourse                                      # SLURM
+snakemake all_timecourse --cores 8 --sdm apptainer --resources mem_mb=30000     # locally
+```
+
+Locally, put the target (`all_timecourse`) before `--resources`. Otherwise Snakemake reads it as another resource.
+
+## 📄 Output
+
+### Final report
+
+Each sample gets `results/<sample>/final_report.pdf` with:
+
+- Key results: top Sturgeon v1 and v2 class, _MGMT_ promoter status and tumor cell fraction
+- Classifier scores: the top 5 classes of Sturgeon v1 and v2 with their raw scores and the number of probes/CpG sites used
+- Classifier plots, copy-number profile with ACE and QDNAseq QC, and _MGMT_ details
+- Software and reference data: versions of the pipeline (with git commit), container, classifiers, tools and R packages, and MD5 checksums of the model and reference files
+
+The same version information is saved as `results/<sample>/software_versions.tsv`.
+
+### Time course report
+
+Each time course sample gets `results/<sample>/<sample>_timecourse.pdf`, with the classifier scores over time, the cumulative read counts and the copy-number plots per time bin.
+
+### Report logo
+
+The report shows the Amsterdam UMC logo in the top-right corner. To use your own institute's logo, put it in the repository (as a PNG; a wide logo works best) and point `report_logo` in `config/samples.yaml` to it:
+
+```yaml
+report_logo: "scripts/my_institute_logo.png"
+```
+
+Set `report_logo: ""` for a report without a logo.
+
+## 💾 Memory and disk use
+
+The memory requests in the Snakefile (32–128 GB for the Sturgeon step, depending on BAM size) are set generously so that jobs are not killed on the HPC. They are not a minimum. Locally, Snakemake lowers any request that is larger than `--resources mem_mb` to that limit and runs the job anyway.
+
+How much memory a run really needs depends on sequencing depth, not on the classifiers. Sturgeon v1 and v2 themselves are light. Most memory goes into the Sturgeon v1 preprocessing step (`sturgeon inputtobed`) and the _MGMT_ step. Both read the full output of `modkit extract`, which has one line per CpG call per read. A small run, such as an intraoperative sample, therefore needs much less memory than a deeply sequenced sample. The same file also takes up disk space in `results/<sample>/` during the run, so make sure there is enough free disk space. It is removed when the run finishes.
+
+Example: a 6 GB BAM file (about 1.3 million reads, 48 million CpG calls) ran in 9 minutes on a laptop (Intel Core i9-14900HX, 32 GB RAM, Ubuntu 22.04) with `--cores 4 --resources mem_mb=12000`. The largest step used at most 11.8 GB of memory, and the run temporarily wrote about 16 GB to disk. For samples of this size, use a machine with at least 16 GB of RAM; deeper samples need more.
+
+`--resources mem_mb` only decides which jobs Snakemake runs at the same time. It does not limit how much memory a job really uses, so a job that needs more than the machine has will still fail.
 
 ## 📖 Citation
 
@@ -181,6 +217,10 @@ If you use NEURON, please cite it. Citation details are in [CITATION.cff](CITATI
 ## ⚖️ License
 
 NEURON is released under the [MIT License](LICENSE). The _MGMT_ model (`scripts/mgmt_137sites_mean_model.Rdata`) comes from [Rapid-CNS2](https://github.com/areebapatel/Rapid-CNS2) (MIT License, © 2022 Areeba Patel; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)). The Sturgeon classifiers, their models and the other tools in the container keep their own licenses.
+
+## ✍️ Authors
+
+Bernard Stikker, PhD - Department of Pathology - Amsterdam UMC
 
 ## 💭 Feedback and Contributing
 
