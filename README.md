@@ -93,15 +93,24 @@ Without sudo, install it in a folder of your choice (needs `curl`, `rpm2cpio` an
 curl -s https://raw.githubusercontent.com/apptainer/apptainer/main/tools/install-unprivileged.sh | bash -s - <folder>
 ```
 
-### 3. Build the container
+### 3. Get the container
 
-Build from the repository root, not from inside `singularity/`: the definition file copies `singularity/sturgeon.yml` using a path relative to the folder you build from.
+Download the ready-made container, or build it yourself. Either way, the container ends up as `singularity/cns_AUMC_pipeline_v2.3.sif`, where `config/samples.yaml` expects it.
+
+**Download (recommended).** The container used with NEURON v1.0.0 is archived on Zenodo ([10.5281/zenodo.24336315](https://doi.org/10.5281/zenodo.24336315), 1.9 GB). Download it and check the SHA-256 checksum:
+
+```bash
+curl -L -o singularity/cns_AUMC_pipeline_v2.3.sif "https://zenodo.org/records/24336315/files/cns_AUMC_pipeline_v2.3.sif?download=1"
+echo "389e34f873a15218076b340c340b5894460804b23cdc3912b22ad615091fac91  singularity/cns_AUMC_pipeline_v2.3.sif" | sha256sum -c
+```
+
+**Build.** Build from the repository root, not from inside `singularity/`: the definition file copies `singularity/sturgeon.yml` using a path relative to the folder you build from.
 
 ```bash
 apptainer build --fakeroot singularity/cns_AUMC_pipeline_v2.3.sif singularity/cns_AUMC_pipeline_v2.3.def
 ```
 
-This writes the container to `singularity/cns_AUMC_pipeline_v2.3.sif`, where `config/samples.yaml` expects it. The container installs Sturgeon v2 from https://github.com/deRidderLab/sturgeon-v2, pinned to a fixed commit, so the build needs internet access to GitHub. The previous definition (v2.2, with a local copy of Sturgeon v2) is kept in `singularity/` for reference.
+The container installs Sturgeon v2 from https://github.com/deRidderLab/sturgeon-v2, pinned to a fixed commit, so the build needs internet access to GitHub. A new build can pick up slightly different versions of some packages; the software versions are listed in each report (see [Output](#-output)). The previous definition (v2.2, with a local copy of Sturgeon v2) is kept in `singularity/` for reference.
 
 ### 4. Download the classifier models
 
@@ -220,6 +229,7 @@ If you use NEURON, please cite it. NEURON is archived on Zenodo:
 
 - All versions (resolves to the latest version): [10.5281/zenodo.24335954](https://doi.org/10.5281/zenodo.24335954)
 - Version 1.0.0: [10.5281/zenodo.24335955](https://doi.org/10.5281/zenodo.24335955)
+- Container (Apptainer image v2.3) used with version 1.0.0: [10.5281/zenodo.24336315](https://doi.org/10.5281/zenodo.24336315)
 
 Cite the version DOI of the release you used. Citation details are also in [CITATION.cff](CITATION.cff); on GitHub, use **Cite this repository** in the sidebar.
 

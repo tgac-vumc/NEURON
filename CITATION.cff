@@ -17,6 +17,9 @@ identifiers:
   - type: doi
     value: "10.5281/zenodo.24335955"
     description: "Version DOI: NEURON v1.0.0"
+  - type: doi
+    value: "10.5281/zenodo.24336315"
+    description: "Apptainer container v2.3 used with NEURON v1.0.0"
 license: MIT
 repository-code: "https://github.com/tgac-vumc/NEURON"
 abstract: >-
