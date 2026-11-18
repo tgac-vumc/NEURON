@@ -5,6 +5,10 @@
   </picture>
 </h1>
 
+<p align="center">
+  <a href="https://doi.org/10.5281/zenodo.24335954"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.24335954.svg" alt="DOI"></a>
+</p>
+
 NEURON (NEURo-Oncology Nanopore) was developed for the molecular diagnostics department of Amsterdam UMC and can be used for automated analysis of nanopore-sequencing data, used for diagnostics of brain tumors. Starting from basecalled and aligned nanopore BAM files, it produces one PDF report per sample.
 
 ## 🌟 Highlights
@@ -212,7 +216,12 @@ Example: a 6 GB BAM file (about 1.3 million reads, 48 million CpG calls) ran in 
 
 ## 📖 Citation
 
-If you use NEURON, please cite it. Citation details are in [CITATION.cff](CITATION.cff); on GitHub, use **Cite this repository** in the sidebar.
+If you use NEURON, please cite it. NEURON is archived on Zenodo:
+
+- All versions (resolves to the latest version): [10.5281/zenodo.24335954](https://doi.org/10.5281/zenodo.24335954)
+- Version 1.0.0: [10.5281/zenodo.24335955](https://doi.org/10.5281/zenodo.24335955)
+
+Cite the version DOI of the release you used. Citation details are also in [CITATION.cff](CITATION.cff); on GitHub, use **Cite this repository** in the sidebar.
 
 ## ⚖️ License
 
